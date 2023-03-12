@@ -17,7 +17,7 @@
 
 #include <iostream>
 #include <iomanip>
-// #include <unistd.h>
+#include <unistd.h>
 
 using namespace std;
 
@@ -26,14 +26,14 @@ int currentThread = 0, numThreads = 1;
 typedef void (*funPtr)(int); // main1 and main2 are examples of this prototype
 
 struct Context {
-    long edi; // Register Destination Index - used for passing arguments to functions
-    long esp; // Stack Pointer - contains the location of the current stack
-    long eax; // Register A - used for storing the return value of a function
-    long ebx; // Register B - used for storing the return value of a function
-    long ecx; // Register C - used for storing the return value of a function
-    long edx; // Register D - used for storing the return value of a function
-    long esi; // Register Source Index - used for passing arguments to functions
-    long ebp; // Register Base Pointer - used for storing the current stack location
+    long rdi; // Register Destination Index - used for passing arguments to functions
+    long rsp; // Stack Pointer - contains the location of the current stack
+    long rax; // Register A - used for storing the return value of a function
+    long rbx; // Register B - used for storing the return value of a function
+    long rcx; // Register C - used for storing the return value of a function
+    long rdx; // Register D - used for storing the return value of a function
+    long rsi; // Register Source Index - used for passing arguments to functions
+    long rbp; // Register Base Pointer - used for storing the current stack location
     
 } threadStates[3];
 
@@ -41,71 +41,103 @@ struct Context {
 /**
  * @brief This function will put each register into the correct field in the context pointers location
  * 
- * each register takes 8 bits, so we store each register 8 bits after the previous one
+ * current implementation:
+ *  we dynamically store the registers in the context pointer using the extended asm syntax
+ *       - the first argument is the assembly instruction
+ *           - use the %% to indicate that we are using a register
+ *           - use the % to indicate that we are using an outside variable
+ *           - use the =m to indicate that we are writing to memory or =r to indicate that we are writing to a register
+ *       - the second argument is the output operands
+ *       - the third argument is the input operands
+ *       - the fourth argument is the clobbered registers
+ * 
+ * previous implementation:
+ *  each register takes 8 bits, so we store each register 8 bits after the previous one
  * 
  * @param p a context pointer
  */
 void saveRegisters(Context *p) {
     // move all of the registers into the context pointer
-    // asm("mov %edi, %0" : "=r" "%edi" (p->edi));
-    // asm("mov %esp, %0" : "=r" "%esp" (p->esp));
-    // asm("mov %eax, %0" : "=r" "%eax" (p->eax));
-    // asm("mov %ebx, %0" : "=r" "%ebx" (p->ebx));
-    // asm("mov %ecx, %0" : "=r" "%ecx" (p->ecx));
-    // asm("mov %edx, %0" : "=r" "%edx" (p->edx));
-    // asm("mov %esi, %0" : "=r" "%esi" (p->esi));
-    // asm("mov %ebp, %0" : "=r" "%ebp" (p->ebp));
 
+    asm("mov %%rdi, %0" : "=m" (p->rdi)); // from rdi to &p->rdi
+    asm("mov %%rsp, %0" : "=m" (p->rsp)); // from rsp to &p->rsp
+    asm("mov %%rax, %0" : "=m" (p->rax)); // from rax to &p->rax
+    asm("mov %%rbx, %0" : "=m" (p->rbx)); // from rbx to &p->rbx
+    asm("mov %%rcx, %0" : "=m" (p->rcx)); // from rcx to &p->rcx
+    asm("mov %%rdx, %0" : "=m" (p->rdx)); // from rdx to &p->rdx
+    asm("mov %%rsi, %0" : "=m" (p->rsi)); // from rsi to &p->rsi
+    asm("mov %%rbp, %0" : "=m" (p->rbp)); // from rbp to &p->rbp
 
-    asm("mov %%edi, %0" : "=r" (p->edi));
-    asm("mov %%esp, %0" : "=r" (p->esp));
-    asm("mov %%eax, %0" : "=r" (p->eax));
-    asm("mov %%ebx, %0" : "=r" (p->ebx));
-    asm("mov %%ecx, %0" : "=r" (p->ecx));
-    asm("mov %%edx, %0" : "=r" (p->edx));
-    asm("mov %%esi, %0" : "=r" (p->esi));
-    asm("mov %%ebp, %0" : "=r" (p->ebp));
-
-    // asm("mov %edi, (%edi)");  
-    // asm("mov %esp, 8(%edi)"); 
-    // asm("mov %eax, 16(%edi)"); 
-    // asm("mov %ebx, 24(%edi)"); 
-    // asm("mov %ecx, 32(%edi)"); 
-    // asm("mov %edx, 40(%edi)");
-    // asm("mov %esi, 48(%edi)"); 
-    // asm("mov %ebp, 56(%edi)");
+    // previous implementation
+    // asm("mov %rdi, (%rdi)");
+    // asm("mov %rsp, 8(%rdi)"); 
+    // asm("mov %rax, 16(%rdi)"); 
+    // asm("mov %rbx, 24(%rdi)"); 
+    // asm("mov %rcx, 32(%rdi)"); 
+    // asm("mov %rdx, 40(%rdi)");
+    // asm("mov %rsi, 48(%rdi)"); 
+    // asm("mov %rbp, 56(%rdi)");
 }
 
 /**
  * @brief This function will take the context pointer and move all of the contents into the appropriate 
  *          register
  * 
+ * current implementation:
+ *  we dynamically load the registers from the context pointer using the extended asm syntax
+ *      - the first argument is the assembly instruction
+ *          - use the %% to indicate that we are using a register
+ *          - use the % to indicate that we are using an outside variable
+ *          - use the =m to indicate that we are reading from memory or =r to indicate that we are reading from a register
+ *      - the second argument is the output operands
+ *      - the third argument is the input operands
+ *      
+ * 
+ * previous implementation:
+ *  each register takes 8 bits, so we store each value in the context pointer 8 bits after the previous one
+ * 
  * @param p a context pointer
  */
 void loadRegisters(Context *p) {
-    asm("mov (%edi), %edi");
-    asm("mov 8(%edi), %esp");
-    asm("mov 16(%edi), %eax");
-    asm("mov 24(%edi), %ebx");
-    asm("mov 32(%edi), %ecx");
-    asm("mov 40(%edi), %edx");
-    asm("mov 48(%edi), %esi");
-    asm("mov 56(%edi), %ebp");
+    asm("mov %0, %%rdi" : "=m" (p->rdi));
+    asm("mov %0, %%rsp" : "=m" (p->rsp));
+    asm("mov %0, %%rax" : "=m" (p->rax));
+    asm("mov %0, %%rbx" : "=m" (p->rbx));
+    asm("mov %0, %%rcx" : "=m" (p->rcx));
+    asm("mov %0, %%rdx" : "=m" (p->rdx));
+    asm("mov %0, %%rsi" : "=m" (p->rsi));
+    asm("mov %0, %%rbp" : "=m" (p->rbp));
+
+    // previous implementation
+    // asm("mov (%rdi), %rdi");
+    // asm("mov 8(%rdi), %rsp");
+    // asm("mov 16(%rdi), %rax");
+    // asm("mov 24(%rdi), %rbx");
+    // asm("mov 32(%rdi), %rcx");
+    // asm("mov 40(%rdi), %rdx");
+    // asm("mov 48(%rdi), %rsi");
+    // asm("mov 56(%rdi), %rbp");
 }
 
 
 void launchThread(funPtr fun, void *stack) {
-    asm("mov %esi, %esp"); // save the stack(esi) and put it in the stack pointer
+    // asm("mov %esi, %esp"); // save the stack(esi) and put it in the stack pointer
 
-    numThreads++;
-    currentThread = numThreads - 1; // give each thread a new unique identifier
+    // numThreads++;
+    // currentThread = numThreads - 1; // give each thread a new unique identifier
+    // fun(currentThread);
+
+    asm("mov %rsi,%rsp"); //rsi is SECOND argument, put in the stack pointer
+    asm("mov %0, %%rsp" : : "m" (stack));
+    currentThread = numThreads - 1;
     fun(currentThread);
 }
 
 
 void startThread(funPtr fun) {
     // To-Do
-    stack = (char *)malloc(17*8*1000) + (17*8*1000); // Create a new stack 
+    stack = (char *)malloc(sizeof(long)*9*1000) + (sizeof(long)*9*1000);
+    numThreads++;
     saveRegisters(&threadStates[currentThread]);
     launchThread(fun, stack);
 }
@@ -118,18 +150,18 @@ void startThread(funPtr fun) {
  */
 void shareCPU(int thread) {
     // To-Do 
-    saveRegisters(&threadStates[thread]);
-    // saveRegisters(&threadStates[currentThread]);
+    // saveRegisters(&threadStates[thread]);
+    saveRegisters(&threadStates[currentThread]);
 
 
-    // // First check to see if there are other threads running
-    // if (currentThread ==  1 && numThreads > 2) { // if 1 is running, run 2
-    //     currentThread = 2;
-    // } else if (currentThread == 2) { // if 2 is running, run 1
-    //     currentThread = 1;
-    // } else { // if none are running, run 0
-    //     currentThread = 0;
-    // } 
+    // First check to see if there are other threads running
+    if (currentThread ==  1 && numThreads > 2) { // if 1 is running, run 2
+        currentThread = 2;
+    } else if (currentThread == 2) { // if 2 is running, run 1
+        currentThread = 1;
+    } else { // if none are running, run 0
+        currentThread = 0;
+    } 
 
     loadRegisters(&threadStates[currentThread]);
     // loadRegisters(&threadStates[thread]);
@@ -139,7 +171,7 @@ void shareCPU(int thread) {
 void main1(int thread) {
     while(true) {
         cout << "Main 1 says Hello" << endl;
-        // usleep(5e5);
+        usleep(5e5);
         shareCPU(thread);
     }
 }
@@ -147,7 +179,7 @@ void main1(int thread) {
 void main2(int thread) {
     while(true) {
         cout << "Main 2 says Hello" << endl;
-        // usleep(5e5);
+        usleep(5e5);
         shareCPU(thread);
     }
 }
@@ -162,7 +194,7 @@ int main() {
 
     while(true) {
         cout << "Share loop once in main " << endl;
-        // usleep(5e5);
+        usleep(5e5);
         shareCPU(0);
     };
 

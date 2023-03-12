@@ -57,11 +57,6 @@ struct Context {
  * @param p a context pointer
  */
 void saveRegisters(Context *p) {
-    // move old stack pointer into x0
-    asm("mov x0, sp");
-    asm("popl {x0}");
-
-    // asm("mov [sp, #4], x0");
     asm("mov %0, x0" : "=r" (p->x0));
     asm("mov %0, x1" : "=r" (p->x1));
     asm("mov %0, x2" : "=r" (p->x2));
@@ -88,33 +83,28 @@ void saveRegisters(Context *p) {
  * @param p a context pointer
  */
 void loadRegisters(Context *p) {
-    asm("mov x0, sp");
-
-
-    // asm("mov %0, x0" : : "r" (p));
-    // asm("mov [sp, #4], x0");
-    asm("mov x0, %0" : : "r" (p->x0));
-    asm("mov x1, %0" : : "r" (p->x1));
-    asm("mov x2, %0" : : "r" (p->x2));
-    asm("mov x3, %0" : : "r" (p->x3));
-    asm("mov x4, %0" : : "r" (p->x4));
-    asm("mov x5, %0" : : "r" (p->x5));
-    asm("mov x6, %0" : : "r" (p->x6));
-    asm("mov x7, %0" : : "r" (p->x7));
-    asm("mov x8, %0" : : "r" (p->x8));
-    asm("mov x9, %0" : : "r" (p->x9));
-    asm("mov x10, %0" : : "r" (p->x10));
-    asm("mov x11, %0" : : "r" (p->x11));
-    asm("mov x12, %0" : : "r" (p->x12));
-    asm("mov x13, %0" : : "r" (p->x13));
-    asm("mov x14, %0" : : "r" (p->x14));
-    asm("mov x15, %0" : : "r" (p->x15));
-    asm("mov sp, %0" : : "r" (p->sp));
+    asm("mov x0, %0" : "=r" (p->x0));
+    asm("mov x1, %0" : "=r" (p->x1));
+    asm("mov x2, %0" : "=r" (p->x2));
+    asm("mov x3, %0" : "=r" (p->x3));
+    asm("mov x4, %0" : "=r" (p->x4));
+    asm("mov x5, %0" : "=r" (p->x5));
+    asm("mov x6, %0" : "=r" (p->x6));
+    asm("mov x7, %0" : "=r" (p->x7));
+    asm("mov x8, %0" : "=r" (p->x8));
+    asm("mov x9, %0" : "=r" (p->x9));
+    asm("mov x10, %0" : "=r" (p->x10));
+    asm("mov x11, %0" : "=r" (p->x11));
+    asm("mov x12, %0" : "=r" (p->x12));
+    asm("mov x13, %0" : "=r" (p->x13));
+    asm("mov x14, %0" : "=r" (p->x14));
+    asm("mov x15, %0" : "=r" (p->x15));
+    asm("mov sp, %0" : "=r" (p->sp));
 }
 
 
 void launchThread(funPtr fun, void *stack) {
-    asm("mov sp, %0" : : "r" (&stack));
+    asm("mov sp, %0" : : "m" (stack));
     // asm("mov %0, sp" : "=r" (stack));
 
     currentThread = numThreads - 1; // give each thread a new unique identifier
