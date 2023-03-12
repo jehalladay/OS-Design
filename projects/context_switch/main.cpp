@@ -17,7 +17,7 @@
 
 #include <iostream>
 #include <iomanip>
-#include <unistd.h>
+// #include <unistd.h>
 
 using namespace std;
 
@@ -46,14 +46,24 @@ struct Context {
  * @param p a context pointer
  */
 void saveRegisters(Context *p) {
-    asm("mov %edi, (%edi)");  
-    asm("mov %esp, 8(%edi)"); 
-    asm("mov %eax, 16(%edi)"); 
-    asm("mov %ebx, 24(%edi)"); 
-    asm("mov %ecx, 32(%edi)"); 
-    asm("mov %edx, 40(%edi)");
-    asm("mov %esi, 48(%edi)"); 
-    asm("mov %ebp, 56(%edi)");
+    // move all of the registers into the context pointer
+    asm("mov %edi, %0" : "=r" (p->edi));
+    asm("mov %esp, %0" : "=r" (p->esp));
+    asm("mov %eax, %0" : "=r" (p->eax));
+    asm("mov %ebx, %0" : "=r" (p->ebx));
+    asm("mov %ecx, %0" : "=r" (p->ecx));
+    asm("mov %edx, %0" : "=r" (p->edx));
+    asm("mov %esi, %0" : "=r" (p->esi));
+    asm("mov %ebp, %0" : "=r" (p->ebp));
+
+    // asm("mov %edi, (%edi)");  
+    // asm("mov %esp, 8(%edi)"); 
+    // asm("mov %eax, 16(%edi)"); 
+    // asm("mov %ebx, 24(%edi)"); 
+    // asm("mov %ecx, 32(%edi)"); 
+    // asm("mov %edx, 40(%edi)");
+    // asm("mov %esi, 48(%edi)"); 
+    // asm("mov %ebp, 56(%edi)");
 }
 
 /**
@@ -119,7 +129,7 @@ void shareCPU(int thread) {
 void main1(int thread) {
     while(true) {
         cout << "Main 1 says Hello" << endl;
-        usleep(5e5);
+        // usleep(5e5);
         shareCPU(thread);
     }
 }
@@ -127,7 +137,7 @@ void main1(int thread) {
 void main2(int thread) {
     while(true) {
         cout << "Main 2 says Hello" << endl;
-        usleep(5e5);
+        // usleep(5e5);
         shareCPU(thread);
     }
 }
@@ -142,7 +152,7 @@ int main() {
 
     while(true) {
         cout << "Share loop once in main " << endl;
-        usleep(5e5);
+        // usleep(5e5);
         shareCPU(0);
     };
 
