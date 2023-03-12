@@ -26,14 +26,14 @@ int currentThread = 0, numThreads = 1;
 typedef void (*funPtr)(int); // main1 and main2 are examples of this prototype
 
 struct Context {
-    long edi; // Register Destination Index - used for passing arguments to functions
-    long esp; // Stack Pointer - contains the location of the current stack
-    long eax; // Register A - used for storing the return value of a function
-    long ebx; // Register B - used for storing the return value of a function
-    long ecx; // Register C - used for storing the return value of a function
-    long edx; // Register D - used for storing the return value of a function
-    long esi; // Register Source Index - used for passing arguments to functions
-    long ebp; // Register Base Pointer - used for storing the current stack location
+    long rdi; // Register Destination Index - used for passing arguments to functions
+    long rsp; // Stack Pointer - contains the location of the current stack
+    long rax; // Register A - used for storing the return value of a function
+    long rbx; // Register B - used for storing the return value of a function
+    long rcx; // Register C - used for storing the return value of a function
+    long rdx; // Register D - used for storing the return value of a function
+    long rsi; // Register Source Index - used for passing arguments to functions
+    long rbp; // Register Base Pointer - used for storing the current stack location
     
 } threadStates[3];
 
@@ -46,14 +46,14 @@ struct Context {
  * @param p a context pointer
  */
 void saveRegisters(Context *p) {
-    asm("mov %edi, (%edi)");  
-    asm("mov %esp, 8(%edi)"); 
-    asm("mov %eax, 16(%edi)"); 
-    asm("mov %ebx, 24(%edi)"); 
-    asm("mov %ecx, 32(%edi)"); 
-    asm("mov %edx, 40(%edi)");
-    asm("mov %esi, 48(%edi)"); 
-    asm("mov %ebp, 56(%edi)");
+    asm("mov %rdi, (%rdi)");  
+    asm("mov %rsp, 8(%rdi)"); 
+    asm("mov %rax, 16(%rdi)"); 
+    asm("mov %rbx, 24(%rdi)"); 
+    asm("mov %rcx, 32(%rdi)"); 
+    asm("mov %rdx, 40(%rdi)");
+    asm("mov %rsi, 48(%rdi)"); 
+    asm("mov %rbp, 56(%rdi)");
 }
 
 /**
@@ -63,19 +63,19 @@ void saveRegisters(Context *p) {
  * @param p a context pointer
  */
 void loadRegisters(Context *p) {
-    asm("mov (%edi), %edi");
-    asm("mov 8(%edi), %esp");
-    asm("mov 16(%edi), %eax");
-    asm("mov 24(%edi), %ebx");
-    asm("mov 32(%edi), %ecx");
-    asm("mov 40(%edi), %edx");
-    asm("mov 48(%edi), %esi");
-    asm("mov 56(%edi), %ebp");
+    asm("mov (%rdi), %rdi");
+    asm("mov 8(%rdi), %rsp");
+    asm("mov 16(%rdi), %rax");
+    asm("mov 24(%rdi), %rbx");
+    asm("mov 32(%rdi), %rcx");
+    asm("mov 40(%rdi), %rdx");
+    asm("mov 48(%rdi), %rsi");
+    asm("mov 56(%rdi), %rbp");
 }
 
 
 void launchThread(funPtr fun, void *stack) {
-    asm("mov %esi, %esp"); // save the stack(esi) and put it in the stack pointer
+    asm("mov %rsi, %rsp"); // save the stack(rsi) and put it in the stack pointer
 
     numThreads++;
     currentThread = numThreads - 1; // give each thread a new unique identifier
