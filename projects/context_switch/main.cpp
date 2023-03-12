@@ -47,14 +47,14 @@ struct Context {
  */
 void saveRegisters(Context *p) {
     // move all of the registers into the context pointer
-    asm("mov %edi, %0" : "=r" (p->edi));
-    asm("mov %esp, %0" : "=r" (p->esp));
-    asm("mov %eax, %0" : "=r" (p->eax));
-    asm("mov %ebx, %0" : "=r" (p->ebx));
-    asm("mov %ecx, %0" : "=r" (p->ecx));
-    asm("mov %edx, %0" : "=r" (p->edx));
-    asm("mov %esi, %0" : "=r" (p->esi));
-    asm("mov %ebp, %0" : "=r" (p->ebp));
+    asm("mov %edi, %0" : "=r" "%edi" (p->edi));
+    asm("mov %esp, %0" : "=r" "%esp" (p->esp));
+    asm("mov %eax, %0" : "=r" "%eax" (p->eax));
+    asm("mov %ebx, %0" : "=r" "%ebx" (p->ebx));
+    asm("mov %ecx, %0" : "=r" "%ecx" (p->ecx));
+    asm("mov %edx, %0" : "=r" "%edx" (p->edx));
+    asm("mov %esi, %0" : "=r" "%esi" (p->esi));
+    asm("mov %ebp, %0" : "=r" "%ebp" (p->ebp));
 
     // asm("mov %edi, (%edi)");  
     // asm("mov %esp, 8(%edi)"); 
